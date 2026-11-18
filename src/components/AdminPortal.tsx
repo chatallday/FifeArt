@@ -111,40 +111,6 @@ interface AdminPortalProps {
 const ADMIN_SESSION_KEY = 'fifeart_admin_session_v1';
 const ADMIN_SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
 
-function readAdminSession(): number | null {
-  try {
-    const raw = localStorage.getItem(ADMIN_SESSION_KEY)
-      ?? sessionStorage.getItem(ADMIN_SESSION_KEY); // prev version compat
-    if (!raw) return null;
-    const ts = parseInt(raw, 10);
-    return Number.isNaN(ts) ? null : ts;
-  } catch {
-    return null;
-  }
-}
-
-function hasValidAdminSession(): boolean {
-  const ts = readAdminSession();
-  if (ts === null) return false;
-  if (Date.now() - ts > ADMIN_SESSION_TTL_MS) {
-    clearAdminSession();
-    return false;
-  }
-  return true;
-}
-
-function setAdminSession(): void {
-  try {
-    localStorage.setItem(ADMIN_SESSION_KEY, String(Date.now()));
-    sessionStorage.removeItem(ADMIN_SESSION_KEY);
-  } catch {
-    try {
-      sessionStorage.setItem(ADMIN_SESSION_KEY, String(Date.now()));
-    } catch {
-      // storage unavailable (private mode) — auth simply won't survive reload
-    }
-  }
-}
 
 function clearAdminSession(): void {
   try {
@@ -171,7 +137,14 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   catalogSource,
   onReloadCatalog,
 }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => hasValidAdminSession());
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
+  // Invalidate any persisted admin sessions created by older builds so a stale
+  // localStorage entry can never auto-authenticate a visitor.
+  useEffect(() => {
+    try { localStorage.removeItem('fifeart_admin_session_v1'); } catch { /* ignore */ }
+    try { sessionStorage.removeItem('fifeart_admin_session_v1'); } catch { /* ignore */ }
+  }, []);
   const [passwordInput, setPasswordInput] = useState('');
   const [authError, setAuthError] = useState('');
   const [activeTab, setActiveTab] = useState<'inventory' | 'add' | 'inbox' | 'seo' | 'content' | 'import' | 'sanity'>('inventory');
@@ -237,7 +210,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   // Must run before the early return so hooks order is stable.
   useEffect(() => {
     if (isAuthenticated) {
-      setAdminSession();
       setEnquiries(StorageService.getEnquiries());
       setNotificationEmails(StorageService.getNotificationEmails());
       setSeoSettings(SeoService.getSeoSettings());
@@ -251,7 +223,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     e.preventDefault();
     if (StorageService.verifyAdminPassword(passwordInput)) {
       setIsAuthenticated(true);
-      setAdminSession();
       setPasswordInput('');
       setAuthError('');
       setEnquiries(StorageService.getEnquiries());
