@@ -11,7 +11,7 @@ const STORAGE_KEY_ABOUT = 'fifeart_about_content_v1';
 const STORAGE_KEY_LEGAL = 'fifeart_legal_content_v1';
 
 export const DEFAULT_ADMIN_PASSWORD =
-  (import.meta.env.VITE_ADMIN_PASSWORD as string | undefined)?.trim() || 'fifeart-studio';
+  (import.meta.env.VITE_ADMIN_PASSWORD as string | undefined)?.trim() || 'Tiffany201800';
 
 export const IS_CUSTOM_ADMIN_PASSWORD_SET = Boolean(
   (import.meta.env.VITE_ADMIN_PASSWORD as string | undefined)?.trim()

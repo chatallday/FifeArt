@@ -38,7 +38,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { Artwork, ArtworkOrientation, ArtworkStatus, Enquiry, SeoSettings, FaqItem, AboutContent, LegalContent } from '../types';
-import { StorageService, DEFAULT_ADMIN_PASSWORD, IS_CUSTOM_ADMIN_PASSWORD_SET } from '../services/storage';
+import { StorageService } from '../services/storage';
 import { SeoService, DEFAULT_SEO_SETTINGS } from '../services/seoService';
 import { DEFAULT_STUDIO_NOTIFICATION_EMAILS } from '../data/faqData';
 import { AVAILABLE_TAGS, STATUS_OPTIONS } from '../data/sampleArtworks';
@@ -259,7 +259,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       setSeoSettings(SeoService.getSeoSettings());
       setFaqsList(SeoService.getFaqs());
     } else {
-      setAuthError(`Incorrect password. (Default is "${DEFAULT_ADMIN_PASSWORD}")`);
+      setAuthError('Incorrect password. Please try again.');
     }
   };
 
@@ -831,15 +831,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 Access Studio Portal
               </button>
 
-              {IS_CUSTOM_ADMIN_PASSWORD_SET ? (
-                <p className="text-[11px] text-stone-500 text-center">
-                  Protected: Authorized password configured via environment variable (<code className="font-mono text-stone-700">VITE_ADMIN_PASSWORD</code>).
-                </p>
-              ) : (
-                <p className="text-[11px] text-stone-400 text-center">
-                  Default password for demonstration: <code className="text-stone-700 font-mono">{DEFAULT_ADMIN_PASSWORD}</code>
-                </p>
-              )}
+               {/* No public password hint - never leak credentials to visitors. */}
             </form>
           </div>
         ) : (
